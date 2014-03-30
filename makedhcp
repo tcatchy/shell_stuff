@@ -1,0 +1,25 @@
+# Project: 		DHCP Server config file
+# Author: 		Anton Tkacz
+# Last updated: 00:42, 10/10/2013
+
+PATH=/bin:/usr/bin
+HOSTS_PATH=$HOME/hosts/
+
+# Standard text
+echo "authoritative;
+deny unknown-clients;
+option routers 10.3.8.16;
+option domain-name-servers 10.3.8.20, 10.3.8.21;\n
+subnet 192.168.0.0 netmask 255.255.0.0 {\n}\n"
+
+# Loop through all of the files in the hosts directory
+# and output their host name, ip and mac address
+for i in `ls $HOSTS_PATH`
+do
+	echo host $i {
+	mac=`cat $HOSTS_PATH$i | head -1`
+	ip=`cat $HOSTS_PATH$i | tail -1`
+	echo "    hardware ethernet ${mac};"
+	echo "    fixed-address" ${ip}";"
+	echo }
+done
