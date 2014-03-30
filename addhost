@@ -1,0 +1,38 @@
+# Project: 		Add Host
+# Author: 		Anton Tkacz
+# Last updated: 01:03, 10/10/2013
+# Comments: I just have to find the $HOME/hosts folder on a 
+#			linux machine and test it aus.
+
+PATH=/bin:/usr/bin
+HOSTS_PATH=$HOME/hosts/
+
+# Get top IP address
+ip_list=`for i in \`ls $HOSTS_PATH\`; do cat $HOSTS_PATH$i; done`
+
+# As a simple numerical sort doesn't suffice, we have to sort by the 
+# 3rd and 4th column using '.' as delimiters.
+ip=`echo $ip_list | tr ' ' '\n' | sort -r -t . -k 3,3n -k 4,4n | tail -1`
+
+# Get tail value of top IP and check if overflow control required
+ip_end=`echo $ip | tr '.' '\n' | tail -1`
+
+if [ ! $ip_end ]
+then
+	# No hosts exist, begin from 192.168.1.1
+	echo $2$'\n192.168.1.1' > $HOSTS_PATH$1
+elif [ $ip_end != 255 ]
+then
+	# No overflow, simply increment
+	ip_end=`expr $ip_end + 1`
+	ip_head=`echo $ip | tr '.' '\n' | head -3 | tr '\n' '.'`
+	echo $2'\n'${ip_head}$ip_end > $HOSTS_PATH$1
+else
+	# Incrementing the third octet by 1
+	ip_increment=`echo $ip | tr '.' '\n'  | head -3 | tail -1`
+	ip_increment=`expr $ip_increment + 1`
+
+	# Extract first and second octet, then output everything
+	ip_head=`echo $ip | tr '.' '\n' | head -2 | tr '\n' '.'`
+	echo $2'\n'${ip_head}$ip_increment.1 > $HOSTS_PATH$1
+fi
