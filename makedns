@@ -1,0 +1,40 @@
+# Project: 		Make a DNS serial number
+# Author: 		Anton Tkacz
+# Last updated: 01:03, 10/10/2013
+
+PATH=/bin:/usr/bin
+
+SERIAL_FILE=$HOME/lastserial
+HOSTS_PATH=$HOME/hosts/
+date=`date +"%Y%m%d"`
+
+# Check if the serial file exists
+if [ -f $SERIAL_FILE ]
+then
+	serial=`cat $SERIAL_FILE`
+	if [ ${date}00 -gt $serial ]
+	then
+		# No serials created today
+		serial=`echo ${date}00`
+		echo $serial > $SERIAL_FILE
+	else
+		# Increment todays serial
+		serial=`expr $serial + 1`
+		echo $serial > $SERIAL_FILE
+	fi
+
+else
+	# Last serial file does not exist
+	serial=`echo ${date}00`
+	echo $serial > $SERIAL_FILE
+fi
+
+echo example.org IN SOA ns1.example.org $serial
+echo "    IN NS 0 ns1.example.net."
+echo "    IN NS 0 ns2.example.net."
+echo "    IN MX 0 mail.example.net."
+for i in `ls $HOSTS_PATH`
+do
+	ip=`cat $HOSTS_PATH$i | tail -1`
+	echo "$i IN A $ip"
+done
